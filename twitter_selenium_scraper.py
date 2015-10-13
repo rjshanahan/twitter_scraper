@@ -55,13 +55,15 @@ def twt_scroller(url):
 #function to handle/parse HTML and extract data - using BeautifulSoup    
 def blogxtract(url):
     
-    #remove 'crap content' variables
+    #regex patterns
     problemchars = re.compile(r'[\[=\+/&<>;:!\\|*^\'"\?%$@)(_\,\.\t\r\n0-9-—\]]')
     prochar = '[(=\-\+\:/&<>;|\'"\?%#$@\,\._)]'
     crp = re.compile(r'MoreCopy link to TweetEmbed Tweet|Reply')
     wrd = re.compile(r'[A-Z]+[a-z]*')
     dgt = re.compile(r'\d+')
     url_finder = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+    retweet = re.compile(r"(?<=Retweet:)(.*)(?=', u'R)")
+    fave = re.compile(r"(?<=Favorite:)(.*)(?=', u'Favorited)")
 
     blog_list = []
      
@@ -81,7 +83,8 @@ def blogxtract(url):
             date = (i.small.a['title'] if i.small is not None else "")
             popular = (i.find('div', {'class': "ProfileTweet-actionList js-actions "}).get_text().replace('\n','') if i.find('div', {'class': "ProfileTweet-actionList js-actions "}) is not None else "")
             text = (i.p.get_text().lower().encode('ascii', 'ignore').strip().replace('\n',' ').replace("'",'') if i.p is not None else "")
-        
+            popular_text = [i + ':' + j  if len(dgt.findall(popular)) != 0 else '' for i, j in zip(wrd.findall(crp.sub('', popular)), dgt.findall(popular))]
+
             
             #build dictionary
             blog_dict = {
@@ -89,16 +92,18 @@ def blogxtract(url):
             "url": link,
             "user": user,
             "date": date,
-            "popular": [i + ':' + j  if len(dgt.findall(popular)) != 0 else '' for i, j in zip(wrd.findall(crp.sub('', popular)), dgt.findall(popular))],
+            "popular": popular_text,
             #before text is stored URLs are removed - note: hash symbol is maintained to indicate hashtag term
-            "blog_text": problemchars.sub(' ', url_finder.sub('', text))
+            "blog_text": problemchars.sub(' ', url_finder.sub('', text)),
+            "like_fave": (int(''.join(fave.findall(str(popular_text)))) if len(fave.findall(str(popular_text))) > 0 else ''),
+            "share_rtwt": (int(''.join(retweet.findall(str(popular_text)))) if len(retweet.findall(str(popular_text))) > 0 else '')
             }
         
             blog_list.append(blog_dict)
             
     #error handling  
-    except (AttributeError, TypeError, KeyError):
-        "missing_value"
+    except (AttributeError, TypeError, KeyError, ValueError):
+        print "missing_value"
         
             
     #call csv writer function and output file
@@ -120,7 +125,7 @@ def writer_csv_3(blog_list):
     
         for i in blog_list:
             if len(i['blog_text']) > 0:
-                newrow = i['header'], i['url'], i['user'], i['date'], i["popular"], i['blog_text']
+                newrow = i['header'], i['url'], i['user'], i['date'], i["popular"], i['blog_text'], i["like_fave"], i["share_rtwt"]
 
                 writer.writerow(newrow)                     
             else:
