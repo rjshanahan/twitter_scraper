@@ -10,7 +10,9 @@ This program will extract the following and output to a CSV file with punctuatio
 - header
 - url
 - user name 
-- popularity metrics (retweets/favourites)
+- popularity metrics (string containing retweets/favourites)
+- like_fave: integer value for number of times 'favorited'
+- share_rtwt: integer value for number of times 'retweeted'
 
 
 ![Twitter](https://g.twimg.com/Twitter_logo_blue.png)
