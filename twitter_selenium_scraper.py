@@ -63,7 +63,7 @@ def blogxtract(url):
     dgt = re.compile(r'\d+')
     url_finder = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
     retweet = re.compile(r"(?<=Retweet:)(.*)(?=', u'R)")
-    fave = re.compile(r"(?<=Favorite:)(.*)(?=', u'Favorited)")
+    fave = re.compile(r"(?<=Like:)(.*)(?=', u'Liked)")
 
     blog_list = []
      
@@ -81,7 +81,7 @@ def blogxtract(url):
             user = (i.find('span', {'class':"username js-action-profile-name"}).get_text() if i.find('span', {'class':"username js-action-profile-name"}) is not None else "")
             link = ('https://twitter.com' + i.small.a['href'] if i.small is not None else "")
             date = (i.small.a['title'] if i.small is not None else "")
-            popular = (i.find('div', {'class': "ProfileTweet-actionList js-actions "}).get_text().replace('\n','') if i.find('div', {'class': "ProfileTweet-actionList js-actions "}) is not None else "")
+            popular = (i.find('div', {'class': "ProfileTweet-actionList js-actions"}).get_text().replace('\n','') if i.find('div', {'class': "ProfileTweet-actionList js-actions"}) is not None else "")
             text = (i.p.get_text().lower().encode('ascii', 'ignore').strip().replace('\n',' ').replace("'",'') if i.p is not None else "")
             popular_text = [i + ':' + j  if len(dgt.findall(popular)) != 0 else '' for i, j in zip(wrd.findall(crp.sub('', popular)), dgt.findall(popular))]
 
